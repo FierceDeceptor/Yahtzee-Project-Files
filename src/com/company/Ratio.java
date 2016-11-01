@@ -50,75 +50,129 @@ public class Ratio implements Value {
         denominator = denominator / gcd;
     }
 
+    /**
+     * Converts a value into a double
+     *
+     * @return the double value
+     */
     @Override
     public double toDouble() {
         return (double) numerator / (double) denominator * sign;
     }
 
+    /**
+     * Converts a value into a long
+     *
+     * @return the long value
+     */
     @Override
     public long toLong() {
         return (long) toDouble();
     }
 
+    /**
+     * Multiplies the values of two value objects
+     *
+     * @param other the other value
+     * @return the product of the two values
+     */
     @Override
     public Value multiply(Value other) {
         if (other instanceof Ratio) {
             return multiply((Ratio) other);
         } else if(other instanceof Lng) {
-            return multiply(((Lng) other).getValue());
+            return multiply(other.toLong());
         }
 
         return new Dbl(this.toDouble() * other.toDouble());
     }
 
+    /**
+     * Divides two value objects
+     *
+     * @param other the divisor
+     * @return the quotient of the two values
+     */
     @Override
     public Value divide(Value other) {
            if (other instanceof Ratio) {
                return divide((Ratio) other);
            } else if (other instanceof Lng) {
-               return divide(((Lng) other).getValue());
+               return divide(other.toLong());
            }
 
         return new Dbl(this.toDouble() / other.toDouble());
     }
 
+    /**
+     * Adds two value objects
+     *
+     * @param other the other value
+     * @return the sum of the two values
+     */
     @Override
     public Value add(Value other) {
         if (other instanceof Ratio) {
             return add((Ratio) other);
         } else if (other instanceof Lng) {
-            return add(((Lng) other).getValue());
+            return add(other.toLong());
         }
 
         return new Dbl(this.toDouble() + other.toDouble());
     }
 
+    /**
+     * Subtracts the values of two objects
+     *
+     * @param other the other value object
+     * @return the difference of the values
+     */
     @Override
     public Value subtract(Value other) {
         if (other instanceof Ratio) {
             return subtract((Ratio) other);
         } else if (other instanceof Lng) {
-            return subtract(((Lng) other).getValue());
+            return subtract( other.toLong());
         }
 
         return new Dbl(this.toDouble() - other.toDouble());
     }
 
+    /**
+     * Converts a value into a Lng object
+     *
+     * @return the converted Lng
+     */
     @Override
     public Lng toLng() {
         return new Lng((long) toDouble());
     }
 
+    /**
+     * Converts a value into a Ratio object
+     *
+     * @return the converted Ratio
+     */
     @Override
     public Ratio toRatio() {
         return this;
     }
 
+    /**
+     * Converts a value to a Dbl object
+     *
+     * @return the converted Dbl
+     */
     @Override
     public Dbl toDbl() {
         return new Dbl(toDouble());
     }
 
+    /**
+     * Finds if a object is rational
+     *
+     * @return true if rational
+     */
     @Override
     public boolean isRational() {
         return true;

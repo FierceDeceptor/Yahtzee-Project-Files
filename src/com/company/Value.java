@@ -10,6 +10,8 @@ package com.company;
  *
  * Calculations between these objects have the following inheritance
  * Lng -> Ratio -> Dbl
+ *
+ * To create a value use the method Stat.value(input)
  */
 public interface Value extends Comparable<Value> {
 
