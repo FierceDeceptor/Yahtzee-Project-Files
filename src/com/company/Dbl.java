@@ -2,13 +2,22 @@ package com.company;
 
 /**
  * Created by danielpredmore on 10/28/16.
+ *
+ * This object holds double values
+ *
  */
 public class Dbl implements Value {
     private double value;
 
+    /**
+     * Constructor for the dbl class
+     *
+     * @param value the value of the double
+     */
     protected Dbl(double value) {
         this.value = value;
     }
+
 
     @Override
     public double toDouble() {
