@@ -45,7 +45,7 @@ public class Main {
         System.out.println();
         System.out.println(matrix.getCol(1).dotProduct(matrix.getRow(2)));
 
-        System.out.println();
+        //System.out.println();
         MatrixPrinter.print(matrix.multiply(matrix));
 
 
