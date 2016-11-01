@@ -38,9 +38,15 @@ public class Main {
                 .Build();
 
         MatrixPrinter.print(matrix);
-        MatrixPrinter.print(matrix.getCol(1));
-        MatrixPrinter.print(matrix.getRow(1));
-        MatrixPrinter.print(matrix.horizontalCat(matrix.getCol(0)));
+        System.out.println();
+        //MatrixPrinter.print(matrix.getCol(1));
+        //MatrixPrinter.print(matrix.getRow(2));
+        MatrixPrinter.print(matrix.horizontalCat(matrix.getCol(0)).transpose());
+        System.out.println();
+        System.out.println(matrix.getCol(1).dotProduct(matrix.getRow(2)));
+
+        System.out.println();
+        MatrixPrinter.print(matrix.multiply(matrix));
 
 
 

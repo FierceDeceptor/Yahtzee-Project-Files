@@ -58,6 +58,84 @@ public class Matrix {
         return builder.Build();
     }
 
+    public Matrix transpose() {
+        Builder builder = new Builder(this.cols(), this.rows());
+
+        for (int i = 0; i < this.rows(); i++) {
+            for (int j = 0; j < this.cols(); j++) {
+                builder = builder.set(this.values[i][j], j, i);
+            }
+        }
+
+        return builder.Build();
+    }
+
+    public Value dotProduct(Matrix other) throws DimensionMismatchException {
+        if ((this.rows() != 1 && this.cols() != 1) || (other.rows() != 1 && other.cols() != 1)) {
+            throw new DimensionMismatchException();
+        }
+
+        Matrix current = this;
+        if (current.rows() != 1) {
+            current = current.transpose();
+        }
+        if (other.rows() != 1) {
+            other = other.transpose();
+        }
+
+        if (current.cols() != other.cols()) {
+            throw new DimensionMismatchException();
+        }
+
+        Value value = Stat.toValue(0);
+
+        for (int i = 0; i < current.cols(); i++) {
+            value = value.add(current.get(0,i).multiply(other.get(0,i)));
+        }
+
+        return value;
+    }
+
+    public Matrix multiply(Matrix other) throws DimensionMismatchException {
+        if (this.cols() != other.rows()) {
+            throw new DimensionMismatchException();
+        }
+
+        Builder builder = new Builder(this.rows(), other.cols());
+
+        for (int i = 0; i < this.rows(); i++) {
+            for (int j = 0; j < other.cols(); j++) {
+                builder.set(this.getRow(i).dotProduct(other.getCol(j)), i, j);
+            }
+        }
+
+        return builder.Build();
+    }
+
+
+
+    public Matrix verticalCat(Matrix other) throws DimensionMismatchException {
+        if (this.cols() != other.cols()) {
+            throw new DimensionMismatchException();
+        }
+
+        Builder builder = new Builder(this.rows() + other.rows() , this.cols());
+
+        for (int i = 0; i < this.rows(); i++) {
+            for (int j = 0; j < this.cols(); j++) {
+                builder = builder.set(this.values[i][j], i, j);
+            }
+        }
+
+        for (int i = 0; i < other.rows(); i++) {
+            for (int j = 0; j < other.cols(); j++) {
+                builder = builder.set(other.values[i][j], i + this.rows(), j);
+            }
+        }
+
+        return builder.Build();
+    }
+
 
     public static class Builder {
         private Value[][] values;
