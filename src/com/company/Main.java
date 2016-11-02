@@ -89,6 +89,23 @@ public class Main {
 
         MatrixPrinter.print(mat.multiply(mat.inverse()));
 
+        MatrixPrinter.print(mat.ref());
+
+        System.out.println("PLU");
+        MatrixPrinter.print(mat.rowExchange(0,2));
+        Matrix[] arr = mat.rowExchange(0,2).plu();
+        System.out.println("P");
+        MatrixPrinter.print(arr[0]);
+        System.out.println("L");
+        MatrixPrinter.print(arr[1]);
+        System.out.println("U");
+        MatrixPrinter.print(arr[2]);
+        System.out.println("Check PLU");
+        MatrixPrinter.print(arr[0].transpose().multiply(arr[1].multiply(arr[2])));
+
+        System.out.println("Det = " + mat.det());
+
+
 
 
 
