@@ -41,12 +41,54 @@ public class Main {
         System.out.println();
         //MatrixPrinter.print(matrix.getCol(1));
         //MatrixPrinter.print(matrix.getRow(2));
-        MatrixPrinter.print(matrix.horizontalCat(matrix.getCol(0)).transpose());
+        MatrixPrinter.print(matrix.horizontalCat(matrix.getCol(1)));
         System.out.println();
         System.out.println(matrix.getCol(1).dotProduct(matrix.getRow(2)));
 
-        //System.out.println();
+        System.out.println();
         MatrixPrinter.print(matrix.multiply(matrix));
+
+        System.out.println("ref");
+        MatrixPrinter.print(matrix.ref());
+
+        //MatrixPrinter.print(matrix);
+
+        System.out.println("Solving!!!");
+
+        Matrix system = new Matrix.Builder(3, 4)
+                .set(Stat.toValue(5),0,0)
+                .set(Stat.toValue(2),0,1)
+                .set(Stat.toValue(4),0,2)
+                .set(Stat.toValue(7),0,3)
+                .set(Stat.toValue(2),1,0)
+                .set(Stat.toValue(4),1,1)
+                .set(Stat.toValue(5),1,2)
+                .set(Stat.toValue(3),1,3)
+                .set(Stat.toValue(6),2,0)
+                .set(Stat.toValue(4),2,1)
+                .set(Stat.toValue(1),2,2)
+                .set(Stat.toValue(2),2,3)
+                .Build();
+
+        System.out.println("The System");
+        MatrixPrinter.print(system);
+        System.out.println("rref of system");
+        Matrix rref = system.rref();
+        MatrixPrinter.print(rref);
+        System.out.println("The solution");
+        Matrix solution = rref.getCol(3).transpose();
+        MatrixPrinter.print(solution);
+
+        System.out.println();
+
+        Matrix mat = system.innerProduct(system);
+        MatrixPrinter.print(mat);
+
+        System.out.println("Inverse");
+        MatrixPrinter.print(mat.inverse());
+
+        MatrixPrinter.print(mat.multiply(mat.inverse()));
+
 
 
 

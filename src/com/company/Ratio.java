@@ -27,6 +27,7 @@ public class Ratio implements Value {
 
 
 
+
     /**
      * getter for the numerator
      *
