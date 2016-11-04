@@ -30,11 +30,15 @@ public class DiceSet {
     {
         diceMap = new TreeMap<>();
 
-        // Check to make sure that there are six dice in the roll.
-        if(dice.length != 6){
+        // Check to make sure that there are not more than five dice in the set.
+        if(dice.length > 5){
             throw new IllegalArgumentException("There cannot be more than 5 die in a set.");
         }
 
+        // Put die values 1 through 6 into the diceMap.
+        for(int i = 1;i <= 6;i++){
+            diceMap.put(i, 0);
+        }
         // Check to make sure the dice are valid otherwise throw an exception.
         for(int i = 0;i < dice.length;i++){
             if(dice[i] < 1 || dice[i] > 6) {
@@ -42,12 +46,7 @@ public class DiceSet {
             }
         }
 
-        // Add the dice 1 through 6 to the diceMap with a count of 0.
-        for(int i = 1;i <= 6;i++){
-            diceMap.put(i, 0);
-        }
-
-        // Add the count of each die to the dice map.
+        // Add the count of each die value to the dice map.
         for(int i = 0; i < dice.length;i++){
             diceMap.put(dice[i], diceMap.get(dice[i])+1);
         }
@@ -60,7 +59,7 @@ public class DiceSet {
      * @exception IllegalArgumentException This exception is thrown when the requested face value is not in the range of
      * 1 through 6.
      */
-    int getDie(int value){
+    public int getDie(int value){
         if(value < 1 || value > 6){
             throw new IllegalArgumentException("Die value must be between 1 and 6.");
         }
@@ -76,12 +75,24 @@ public class DiceSet {
      * @exception IllegalArgumentException This excption is thrown whit requested face value is not in the range of
      * 1 through 6
      */
-    void setDie(int value, int number){
+    public void setDie(int value, int number){
         if(value < 1 || value > 6){
             throw new IllegalArgumentException("Die value must be between 1 and 6.");
         }
 
         // Set the number of dice with a particular face value.
         diceMap.put(value, number);
+    }
+
+    /**
+     * This method is used to query the number of dice that are in the set.
+     * @return The number of dice in the set.
+     */
+    public int numberOfDice(){
+        int sum = 0;
+        for(int number : diceMap.values()){
+            sum += number;
+        }
+        return sum;
     }
 }

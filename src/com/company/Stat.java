@@ -5,15 +5,15 @@ package com.company;
  */
 public class Stat {
 
-    public static Value toValue(double value) {
+    public static Dbl toValue(double value) {
         return new Dbl(value);
     }
 
-    public static Value toValue(long value) {
+    public static Lng toValue(long value) {
         return new Lng(value);
     }
 
-    public static Value toValue(long a, long b) {
+    public static Ratio toValue(long a, long b) {
         return new Ratio(a,b);
     }
 

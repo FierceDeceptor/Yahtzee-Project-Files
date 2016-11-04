@@ -1,6 +1,8 @@
 package com.company.roll;
 
 import com.company.DiceSet;
+import com.company.Ratio;
+
 /**
  * Created by Jonathan Hamberg on 11/2/2016.
  */
@@ -23,5 +25,5 @@ public interface RollDice {
      * @return The probability that the particular move is to be rolled.  This number is 0.0 for 0% probability and 1.0
      * for 100% probability.
      */
-    double getProbability(DiceSet dice);
+    Ratio getProbability(DiceSet dice);
 }
