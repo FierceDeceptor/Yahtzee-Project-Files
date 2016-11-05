@@ -25,5 +25,5 @@ public interface RollDice {
      * @return The probability that the particular move is to be rolled.  This number is 0.0 for 0% probability and 1.0
      * for 100% probability.
      */
-    Ratio getProbability(DiceSet dice);
+    Ratio getProbability(DiceSet dice, int rollsLeft);
 }

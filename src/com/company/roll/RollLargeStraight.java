@@ -14,7 +14,7 @@ public class RollLargeStraight implements RollDice {
     }
 
     @Override
-    public Ratio getProbability(DiceSet dice) {
+    public Ratio getProbability(DiceSet dice, int rollsLeft) {
         return Stat.toValue(1,1);
     }
 }

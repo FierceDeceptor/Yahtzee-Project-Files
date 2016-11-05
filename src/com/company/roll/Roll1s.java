@@ -11,7 +11,7 @@ public class Roll1s implements RollDice {
     /**
      * The score is calculated by determining how many ones are in the roll and multiplying by 1.
      * @param dice The dice in the roll.
-     * @return The score resulting from the roll of 1s.
+     * @return The score of the dice if using the 1s.
      */
     @Override
     public int getScore(DiceSet dice) {
@@ -28,9 +28,9 @@ public class Roll1s implements RollDice {
      * @return The probability of rolling a 1 for the remaining dice.
      */
     @Override
-    public Ratio getProbability(DiceSet dice) {
+    public Ratio getProbability(DiceSet dice, int rollsLeft) {
 
-        // The probability of rolling a 1 is 100% if the one is already in the previous dice.
+        // The probability of rolling a 1 is 100% if the one is already in the dice roll.
         if(dice.getDie(1) > 0){
             return Stat.toValue(1,1);
         }
