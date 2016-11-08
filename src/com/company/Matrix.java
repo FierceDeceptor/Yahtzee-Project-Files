@@ -647,6 +647,7 @@ public class Matrix {
         return builder.Build();
     }
 
+
     /**
      * Builder for the Matrix class
      */

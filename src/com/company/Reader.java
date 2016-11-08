@@ -1,0 +1,411 @@
+package com.company;
+
+
+import java.io.PrintStream;
+import java.util.*;
+
+/**
+ * Created by danielpredmore on 11/2/16.
+ */
+public class Reader {
+    private final char[] DELIMITERS = {' ', '+', '-', '*', '/', '=', '[', ']', '(', ')', ',', ';', '\n'};
+    //private final int[] RANKS = {-1, 3, 3, 4, 4, 1, 2, 2, 2, 2, 2, 2, -1};
+    private Scanner input;
+    private PrintStream output;
+    private Map<String, Object> vars;
+
+    public Reader(Scanner input, PrintStream output) {
+        this.input = input;
+        this.output = output;
+        vars = new HashMap<>();
+        output.print(">> ");
+        while (input.hasNext()) {
+            readLine();
+            output.print(">> ");
+        }
+    }
+
+    private boolean readLine() {
+        String line = input.nextLine();
+        ArrayList<String> tokens = new ArrayList<>();
+        boolean print =  false;
+
+        String current = "";
+
+        for (int i = 0; i < line.length(); i++) {
+            if (!isDelimiter(line.charAt(i))) {
+                current += line.charAt(i);
+            } else {
+                if (!current.equals("")) {
+                    tokens.add(current);
+                }
+                current = "";
+
+                if(line.charAt(i) != ' ' && line.charAt(i) != '\n') {
+                    tokens.add("" + line.charAt(i));
+                }
+            }
+
+        }
+
+        if (!current.equals("")) {
+            tokens.add(current);
+        }
+
+        ArrayList<Object> out = evaluate(convert(tokens));
+
+        vars.put("ans", out.get(0));
+
+        if (!out.get(out.size() - 1).equals(";")) {
+
+            if (!(out.get(0) instanceof Matrix)) {
+                output.println();
+            }
+
+            for (Object o : out) {
+                if (o instanceof Matrix) {
+                    output.println();
+                    MatrixPrinter.print((Matrix) o, output);
+                } else {
+                    output.print(o + " ");
+                }
+            }
+            output.println();
+
+            if (!(out.get(out.size() - 1) instanceof Matrix)) {
+                output.println();
+            }
+
+            print = true;
+        }
+
+        return print;
+    }
+
+    private ArrayList<Object> evaluate(ArrayList<Object> tokens) {
+
+        tokens = parentheses(tokens);
+        tokens = functions(tokens);
+        tokens = multiply(tokens);
+        tokens = add(tokens);
+        tokens = matrix(tokens);
+        equals(tokens);
+
+
+
+        return tokens;
+    }
+
+    private ArrayList<Object> convert(ArrayList<String> tokens) {
+        ArrayList<Object> operations = new ArrayList<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            if (isNumber(token)) {
+                if ((operations.size() == 1 && operations.get(operations.size() -1).equals("-"))
+                        ||  (operations.size() >= 2
+                        && operations.get(operations.size() -1).equals("-")
+                        && (!(operations.get(operations.size() -2) instanceof Value))
+                        && !operations.get(operations.size() - 2).equals("]")
+                        && !(operations.get(operations.size() - 2) instanceof Matrix))) {
+                    token = "-" + token;
+                    operations.remove(operations.size() - 1);
+                }
+                operations.add(Stat.toValue(token));
+            } else if(vars.containsKey(token) && !(tokens.size() > i + 1 && tokens.get(i + 1).equals("="))) {
+                Object o = vars.get(token);
+                if (vars.containsKey(o.toString())) {
+                    operations.add(vars.get(o.toString()));
+                } else {
+                    operations.add(o);
+                }
+
+            } else {
+                operations.add(token);
+            }
+        }
+
+        return operations;
+    }
+
+    private boolean isNumber(String str) {
+        return str.matches("[-+]?\\d*\\.?\\d+");
+    }
+
+    private ArrayList<Object> matrix(ArrayList tokens) {
+        ArrayList<Object> output = new ArrayList<>();
+        boolean hasChanged = false;
+
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals("[")) {
+                hasChanged = true;
+                int col = 0;
+                int row = 0;
+
+                for (int j = i + 1; !tokens.get(j).equals("]"); j++) {
+                    if (tokens.get(j).equals(";")) {
+                        row++;
+                    } else if(!tokens.get(j).equals(",")) {
+                        col++;
+                    }
+
+                }
+
+                Matrix.Builder builder = new Matrix.Builder(row + 1, col / (row + 1));
+                col = 0;
+                row = 0;
+
+                for (int j = i + 1; !tokens.get(j).equals("]"); j++) {
+                    if (!tokens.get(j).equals(",") && !tokens.get(j).equals(";")) {
+                        builder = builder.set((Value) tokens.get(j), row, col);
+                        col++;
+                    }
+
+
+                    if (tokens.get(j).equals(";")) {
+                        row++;
+                        col = 0;
+                    }
+
+                    i = j + 1;
+                }
+
+                output.add(builder.Build());
+            } else {
+                output.add(tokens.get(i));
+            }
+
+        }
+
+        if (hasChanged) {
+            return evaluate(output);
+        }
+
+        return output;
+    }
+
+    private ArrayList<Object> functions(ArrayList<Object> tokens) {
+        //ArrayList<Object> output = new ArrayList<>();
+        Object token;
+        Matrix mat;
+        Value var;
+
+        for (int i = 0; i < tokens.size(); i++) {
+            switch (tokens.get(i).toString()) {
+                case "eye" :
+                    var = (Value) tokens.get(i + 1);
+                    token = Matrix.Builder.eye((int) var.toLong()).Build();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "inv" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    token = mat.inverse();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "ref" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    token = mat.ref();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "rref" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    token = mat.rref();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "det" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    token = mat.det();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "cat" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    if (tokens.get(i + 2).equals(";")) {
+                        token = mat.verticalCat((Matrix) tokens.get(i + 3));
+                    } else {
+                        token = mat.horizontalCat((Matrix) tokens.get(i + 3));
+                    }
+                    tokens.set(i, token);
+                    tokens.remove(i + 3);
+                    tokens.remove(i + 2);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                case "transpose" :
+                    mat = (Matrix) tokens.get(i + 1);
+                    token = mat.transpose();
+                    tokens.set(i, token);
+                    tokens.remove(i + 1);
+                    return evaluate(tokens);
+                default:
+                    break;
+            }
+        }
+
+        return tokens;
+    }
+
+    private ArrayList<Object> parentheses(ArrayList tokens) {
+        ArrayList<Object> output = new ArrayList<>();
+        ArrayList<Object> temp = new ArrayList<>();
+        int parenCount = 0;
+
+        for (int i = 0; i < tokens.size(); i++) {
+            int j;
+            if (tokens.get(i).equals("(")) {
+                if (parenCount == 0) {
+                    temp = new ArrayList<>();
+                }
+                parenCount++;
+
+                for (j = i + 1; parenCount > 0; j++) {
+                    if (tokens.get(j).equals("(")) {
+                        parenCount++;
+                    } else if (tokens.get(j).equals(")")) {
+                        parenCount--;
+                    }
+                    if (parenCount != 0) {
+                        temp.add(tokens.get(j));
+                    }
+                }
+                temp = evaluate(temp);
+
+                output.addAll(temp);
+                i = j - 1;
+
+            } else {
+                output.add(tokens.get(i));
+            }
+        }
+
+        return output;
+    }
+
+    private ArrayList<Object> multiply(ArrayList tokens) {
+        ArrayList<Object> output = new ArrayList<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals("*")) {
+                if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Value) {
+                    Value value = ((Value) output.get(output.size() - 1)).multiply((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).multiply((Value) tokens.get(i + 1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Value) {
+                    Matrix value = ((Matrix) tokens.get(i + 1)).multiply((Value) output.get(output.size() - 1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).multiply((Matrix) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else {
+                    output.add(tokens.get(i));
+                }
+            } else if (tokens.get(i).equals("/")) {
+                if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Value) {
+                    Value value = ((Value) output.get(output.size() - 1)).divide((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                }
+            } else {
+                output.add(tokens.get(i));
+            }
+        }
+        return output;
+    }
+
+
+    private ArrayList<Object> add(ArrayList tokens) {
+        ArrayList<Object> output = new ArrayList<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals("+")) {
+                if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Value) {
+                    Value value = ((Value) output.get(output.size() - 1)).add((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).add((Value) tokens.get(i + 1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Value) {
+                    Matrix value = ((Matrix) tokens.get(i + 1)).add((Value) output.get(output.size() - 1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).add((Matrix) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else {
+                    output.add(tokens.get(i));
+                }
+            } else if (tokens.get(i).equals("-")) {
+                if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Value) {
+                    Value value = ((Value) output.get(output.size() - 1)).subtract((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Value && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).add(((Value) tokens.get(i + 1)).multiply(Stat.toValue(-1)));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Value) {
+                    Matrix value = ((Matrix) tokens.get(i + 1)).subtract((Value) output.get(output.size() - 1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else if (tokens.get(i+1) instanceof Matrix && tokens.get(i-1) instanceof Matrix) {
+                    Matrix value = ((Matrix) output.get(output.size() - 1)).subtract((Matrix) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    output.add(value);
+                    i++;
+                } else {
+                    output.add(tokens.get(i));
+                }
+            } else {
+                output.add(tokens.get(i));
+            }
+        }
+        return output;
+    }
+
+    private void equals(ArrayList tokens) {
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals("=")) {
+                vars.put(tokens.get(i-1).toString(), tokens.get(i + 1));
+            }
+        }
+
+    }
+
+
+
+
+
+    private boolean isDelimiter(char c) {
+        for (int i = 0; i < DELIMITERS.length; i++) {
+            if (c == DELIMITERS[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+

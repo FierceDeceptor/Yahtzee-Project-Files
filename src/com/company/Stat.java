@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.Scanner;
+
 /**
  * Created by danielpredmore on 10/27/16.
  */
@@ -15,6 +17,13 @@ public class Stat {
 
     public static Ratio toValue(long a, long b) {
         return new Ratio(a,b);
+    }
+
+    public static Value toValue(String str) {
+        if (str.contains(".")) {
+            return toValue(new Scanner(str).nextDouble());
+        }
+        return toValue(new Scanner(str).nextLong());
     }
 
 
