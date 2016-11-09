@@ -95,6 +95,17 @@ public class Lng implements Value {
         return this.add(other.multiply(new Lng(-1)));
     }
 
+    @Override
+    public Value power(Value other) {
+        Value out = new Dbl(Math.pow(this.toDouble(), other.toDouble()));
+
+        if (other instanceof Lng) {
+            return out.toLng();
+        }
+
+        return out;
+    }
+
     /**
      * Converts a value into a Lng object
      *

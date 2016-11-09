@@ -47,6 +47,8 @@ public interface Value extends Comparable<Value> {
      */
     Value subtract(Value other);
 
+    Value power(Value other);
+
     /**
      * Converts a value into a double
      *

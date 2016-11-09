@@ -89,6 +89,11 @@ public class Dbl implements Value {
         return new Dbl(this.value - other.toDouble());
     }
 
+    @Override
+    public Value power(Value other) {
+        return new Dbl(Math.pow(this.toDouble(), other.toDouble()));
+    }
+
     /**
      * Converts a value into a Lng object
      *

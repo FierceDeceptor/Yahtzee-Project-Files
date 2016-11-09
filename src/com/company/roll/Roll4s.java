@@ -38,6 +38,6 @@ public class Roll4s implements RollDice {
         int n = 5 - dice.numberOfDice();
 
         // Calculate the probability to roll a one on the next roll.
-        return (Ratio)(Stat.toValue(1,1).subtract(Stat.toValue(5,6).power(n)));
+        return (Ratio)(Stat.toValue(1,1).subtract(Stat.toValue(5,6).power(Stat.toValue(n))));
     }
 }

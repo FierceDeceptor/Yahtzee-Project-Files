@@ -84,7 +84,6 @@ public class Stat {
         } else if(a > b) {
             value = 1;
             for (long i = b + 1; i <= a; i++) {
-                System.out.println(i);
                 value *= i;
             }
 
@@ -176,7 +175,6 @@ public class Stat {
             b = 1/(b-a);
         } while (Math.abs(value-h1/k1) > value*tolerance);
 
-        System.out.println(sign);
         return new Ratio((long) h1 * sign, (long) k1);
     }
 

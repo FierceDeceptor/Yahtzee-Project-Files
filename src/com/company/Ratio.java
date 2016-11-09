@@ -141,36 +141,42 @@ public class Ratio implements Value {
 
     /**
      * Calculates the ration raised to the power of p.
-     * @param p The power the ratio is being raised to.
+     * @param other The power the ratio is being raised to.
      * @return The ration raised to the power of p.
      */
-    public Ratio power(int p){
+    public Value power(Value other){
         // If the power is 0 then the result is 1.
-        if(p == 0){
-            return Stat.toValue(1,1);
-        }
-        Ratio result = this.copyOf();
-        int pow = Math.abs(p);
-        // Calculate the magnitude of the power.
-        long num = this.numerator;
-        long den = this.denominator;
+        if (other instanceof Lng) {
+            int p = (int) other.toLong();
 
-        for(int i = 1; i < pow; i++){
-            result.numerator *= num;
-            result.denominator *= den;
+            if (p == 0) {
+                return Stat.toValue(1);
+            }
+            Ratio result = this.copyOf();
+            int pow = Math.abs(p);
+            // Calculate the magnitude of the power.
+            long num = this.numerator;
+            long den = this.denominator;
+
+            for (int i = 1; i < pow; i++) {
+                result.numerator *= num;
+                result.denominator *= den;
+            }
+
+            // Calculate the sign of the ratio.
+            if (pow % 2 == 0) {
+                result.sign = Math.abs(result.sign);
+            }
+
+            // Determine of the ratio needs to be inverted.
+            if (p < 0) {
+                result.invert();
+            }
+
+            return result;
         }
 
-        // Calculate the sign of the ratio.
-        if(pow % 2 == 0){
-            result.sign = Math.abs(result.sign);
-        }
-
-        // Determine of the ratio needs to be inverted.
-        if(p < 0){
-            result.invert();
-        }
-
-        return result;
+        return new Dbl(Math.pow(this.toDouble(), other.toDouble()));
     }
 
     /**
@@ -223,7 +229,7 @@ public class Ratio implements Value {
 
     @Override
     public int compareTo(Value other) {
-        return (int) this.subtract(other.toRatio()).numerator;
+        return (int) this.toRatio().subtract(other.toRatio()).toRatio().getNumerator();
     }
 
 

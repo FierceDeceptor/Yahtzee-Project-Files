@@ -145,10 +145,10 @@ public class Matrix {
      * @return a matrix from start to end points
      */
     public Matrix getSubMatrix(int rowStart, int colStart, int rowEnd, int colEnd) {
-        Builder builder = new Builder(rowEnd - rowStart, colEnd - colStart);
+        Builder builder = new Builder(rowEnd - rowStart + 1, colEnd - colStart + 1);
 
-        for (int i = rowStart; i < rowEnd; i++) {
-            for (int j = colStart; j < colEnd; j++) {
+        for (int i = rowStart; i <= rowEnd; i++) {
+            for (int j = colStart; j <= colEnd; j++) {
                 builder = builder.set(this.get(i, j), i - rowStart, j - colStart);
             }
         }
