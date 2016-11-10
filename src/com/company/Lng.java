@@ -97,13 +97,15 @@ public class Lng implements Value {
 
     @Override
     public Value power(Value other) {
-        Value out = new Dbl(Math.pow(this.toDouble(), other.toDouble()));
-
         if (other instanceof Lng) {
-            return out.toLng();
+            if (other.toLong() >= 0) {
+                return new Dbl(Math.pow(this.toDouble(), other.toDouble())).toLng();
+            } else {
+                return new Ratio(1, (long) Math.pow(this.toDouble(), Math.abs(other.toDouble())));
+            }
         }
 
-        return out;
+        return new Dbl(Math.pow(this.toDouble(), other.toDouble()));
     }
 
     /**

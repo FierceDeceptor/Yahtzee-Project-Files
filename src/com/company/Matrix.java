@@ -467,7 +467,7 @@ public class Matrix {
 
         Matrix matrix = this.horizontalCat(Builder.eye(this.rows()).Build());
         matrix = matrix.rref();
-        matrix = matrix.getSubMatrix(0, this.cols(), this.rows(), matrix.cols());
+        matrix = matrix.getSubMatrix(0, this.cols(), this.rows() - 1, matrix.cols() - 1);
 
         return matrix;
     }
