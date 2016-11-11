@@ -1,25 +1,47 @@
 package com.company;
 
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
+import java.io.File;
 
 /**
  * Created by danielpredmore on 11/2/16.
  */
 public class Reader {
-    private final char[] DELIMITERS = {' ', '+', '-', '*', '/', '=', '[', ']', '(', ')', ',', ';', '\n', ':', '^'};
+    private final char[] DELIMITERS = {' ', '+', '-', '*', '/', '=', '[', ']', '(', ')', ',', ';', '\n', ':', '^', '<', '>', '~'};
     private Scanner input;
     private PrintStream output;
     private Map<String, Object> vars;
+    private int stackHeight;
+    private String currentLine;
+
 
     public Reader(Scanner input, PrintStream output) {
         this.input = input;
         this.output = output;
         vars = new HashMap<>();
+        stackHeight = 0;
         output.print(">> ");
         while (input.hasNext()) {
-            readLine();
+            try {
+                readLine();
+            } catch (Exception exp) {
+                output.print("Error : ");
+                output.println(exp);
+            }
             output.print(">> ");
+        }
+    }
+
+    private Reader(Scanner input, PrintStream output, Map<String, Object> vars, int stackHeight) {
+        this.input = input;
+        this.output = output;
+        this.vars = vars;
+        this.stackHeight = stackHeight;
+
+        while (input.hasNext()) {
+            readLine();
         }
     }
 
@@ -28,6 +50,7 @@ public class Reader {
         ArrayList<String> tokens = new ArrayList<>();
         boolean print =  false;
 
+        currentLine = line;
         String current = "";
 
         for (int i = 0; i < line.length(); i++) {
@@ -67,7 +90,7 @@ public class Reader {
 
         vars.put("ans", out.get(0));
 
-        if (!out.get(out.size() - 1).equals(";")) {
+        if (!out.isEmpty() && !out.get(out.size() - 1).equals(";")) {
 
             if (!(out.get(0) instanceof Matrix)) {
                 output.println();
@@ -103,6 +126,7 @@ public class Reader {
         tokens = add(tokens);
         tokens = matrix(tokens);
         tokens = listBuild(tokens);
+        tokens = bool(tokens);
         equals(tokens);
 
         return tokens;
@@ -115,7 +139,7 @@ public class Reader {
             String token = tokens.get(i);
             if (isNumber(token)) {
                 operations.add(Stat.toValue(token));
-            } else if(vars.containsKey(token) && !(tokens.size() > i + 1 && tokens.get(i + 1).equals("="))) {
+            } else if(vars.containsKey(token) && !(tokens.size() > i + 1 && tokens.get(i + 1).equals("=") && !tokens.get(i+2).equals("="))) {
                 Object o = vars.get(token);
                 if (vars.containsKey(o.toString())) {
                     operations.add(vars.get(o.toString()));
@@ -316,10 +340,11 @@ public class Reader {
     }
 
     private ArrayList<Object> functions(ArrayList<Object> tokens) {
-        //ArrayList<Object> output = new ArrayList<>();
+        ArrayList<Object> out;
         Object token;
         Matrix mat;
         Value var;
+        String loop;
 
         for (int i = 0; i < tokens.size(); i++) {
             switch (tokens.get(i).toString()) {
@@ -388,12 +413,143 @@ public class Reader {
                     tokens.remove(i + 2);
                     tokens.remove(i + 1);
                     return evaluate(tokens);
+                case "load" :
+                    try {
+                        Scanner scan = new Scanner(new File(tokens.get(i + 1).toString()));
+                        new Reader(scan, output, vars, stackHeight + 1);
+                        tokens.set(i, vars.get("ans"));
+                    } catch (FileNotFoundException exp) {
+                        output.println("Error :" + " " + exp);
+                    }
+                    tokens.remove(i+1);
+                    return evaluate(tokens);
+                case "run" :
+                    Map<String, Object> map = new HashMap<>();
+                    try {
+                        Scanner scan = new Scanner(new File(tokens.get(i+1).toString()));
+                        new Reader(scan, output, map, stackHeight + 1);
+                        tokens.set(i, map.get("ans"));
+                    } catch (FileNotFoundException exp) {
+                        output.println("Error : " + exp);
+                    }
+                    tokens.remove(i+1);
+                    return evaluate(tokens);
+                case "for" :
+                    String varName = tokens.get(i + 1).toString();
+                    mat = (Matrix) tokens.get(i + 3);
+                    loop = getBlock();
+                    for (int j = 0; j < mat.cols(); j++) {
+                        vars.put(varName, mat.get(0,j));
+                        Scanner scan = new Scanner(loop);
+                        new Reader(scan,output,vars, stackHeight + 1);
+                    }
+                    out = new ArrayList<>();
+                    out.add(";");
+                    return out;
+
+                case "while" :
+                    ArrayList<String> statement = new ArrayList<>();
+                    String line = currentLine;
+                    String current = "";
+
+                    for (int j = 0; j < line.length(); j++) {
+                        if (!isDelimiter(line.charAt(j))) {
+                            current += line.charAt(j);
+                        } else {
+                            if (!current.equals("")) {
+                                statement.add(current);
+                            }
+                            current = "";
+                            if(line.charAt(j) != ' ' && line.charAt(j) != '\n') {
+                                statement.add(line.charAt(j) + "");
+                            }
+                        }
+                    }
+                    if (!current.equals("")) {
+                        statement.add(current);
+                    }
+                    statement.remove(0);
+
+                    loop = getBlock();
+
+                    while ( getFirstValue(evaluate(convert(statement))).compareTo(Stat.toValue(1)) == 0) {
+                        Scanner scan = new Scanner(loop);
+                        new Reader(scan,output,vars,stackHeight+1);
+                    }
+
+                    out = new ArrayList<>();
+                    out.add(";");
+                    return out;
+
+
                 default:
                     break;
             }
         }
 
         return tokens;
+    }
+
+    private String getBlock() {
+        String TAB = "   ";
+
+        String tab = "";
+        for (int j = 0; j <= stackHeight; j++) {
+            tab = tab + TAB;
+        }
+
+        if (stackHeight == 0) {
+            output.print(tab);
+        }
+
+        int height = stackHeight;
+        String loop = "";
+        boolean done = false;
+        while (!done && input.hasNextLine()) {
+            String line = input.nextLine();
+            String type = new Scanner(line).next();
+
+            if(!type.equals("end")) {
+                if (type.equals("for")
+                        || type.equals("while")) {
+                    height++;
+                    tab = "";
+                    for (int j = 0; j <= height; j++) {
+                        tab = tab + TAB;
+                    }
+                }
+                loop += line + "\n";
+                if (stackHeight == 0) {
+                    output.print(tab);
+                }
+            } else {
+                if (height == stackHeight) {
+                    done = true;
+                }
+                height--;
+                if (stackHeight == 0) {
+                    tab = "";
+                    for (int j = 0; j <= height; j++) {
+                        tab = tab + TAB;
+                    }
+                    output.print("\033[F");
+                    output.flush();
+                    output.print(tab + "end\033[K\n" + tab);
+                }
+            }
+        }
+
+        return loop;
+    }
+
+    private Value getFirstValue(ArrayList<Object> tokens) {
+        for (Object o:tokens) {
+            if (o instanceof Value) {
+                return (Value) o;
+            }
+        }
+
+        return null;
     }
 
     private ArrayList<Object> parentheses(ArrayList tokens) {
@@ -523,6 +679,87 @@ public class Reader {
                 output.add(tokens.get(i));
             }
         }
+
+        return output;
+    }
+
+    private ArrayList<Object> bool(ArrayList tokens) {
+        ArrayList<Object> output = new ArrayList<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals("=")) {
+                if (tokens.get(i+1).equals("=")) {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+2));
+                    output.remove(output.size() - 1);
+                    if (val == 0) {
+                        output.add(Stat.toValue(1));
+                    } else {
+                        output.add(Stat.toValue(0));
+                    }
+                    i += 2;
+                } else {
+                    output.add(tokens.get(i));
+                }
+
+            } else if(tokens.get(i).equals(">")) {
+                if (tokens.get(i+1).equals("=")) {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+2));
+                    output.remove(output.size() - 1);
+                    if (val >= 0) {
+                        output.add(Stat.toValue(1));
+                    } else {
+                        output.add(Stat.toValue(0));
+                    }
+                    i += 2;
+                } else {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    if (val > 0) {
+                        output.add(Stat.toValue(1));
+                    } else {
+                        output.add(Stat.toValue(0));
+                    }
+                    i += 1;
+                }
+            } else if(tokens.get(i).equals("<")) {
+                if (tokens.get(i+1).equals("=")) {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+2));
+                    output.remove(output.size() - 1);
+                    if (val <= 0) {
+                        output.add(Stat.toValue(1));
+                    } else {
+                        output.add(Stat.toValue(0));
+                    }
+                    i += 2;
+                } else {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+1));
+                    output.remove(output.size() - 1);
+                    if (val < 0) {
+                        output.add(Stat.toValue(1));
+                    } else {
+                        output.add(Stat.toValue(0));
+                    }
+                    i += 1;
+                }
+            } else if (tokens.get(i).equals("~")) {
+                if (tokens.get(i+1).equals("=")) {
+                    int val = ((Value) tokens.get(i-1)).compareTo((Value) tokens.get(i+2));
+                    output.remove(output.size() - 1);
+                    if (val == 0) {
+                        output.add(Stat.toValue(0));
+                    } else {
+                        output.add(Stat.toValue(1));
+                    }
+                    i += 2;
+                } else {
+                    output.add(tokens.get(i));
+                }
+
+            } else {
+                output.add(tokens.get(i));
+            }
+        }
+
 
         return output;
     }
