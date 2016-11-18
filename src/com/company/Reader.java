@@ -9,7 +9,6 @@ import java.io.File;
  * Created by danielpredmore on 11/2/16.
  */
 public class Reader {
-    private final char[] DELIMITERS = {' ', '+', '-', '*', '/', '=', '[', ']', '(', ')', ',', ';', '\n', ':', '^', '<', '>', '~'};
     private Scanner input;
     private PrintStream output;
     private Map<String, Object> vars;
@@ -34,7 +33,7 @@ public class Reader {
         }
     }
 
-    private Reader(Scanner input, PrintStream output, Map<String, Object> vars, int stackHeight) {
+    protected Reader(Scanner input, PrintStream output, Map<String, Object> vars, int stackHeight) {
         this.input = input;
         this.output = output;
         this.vars = vars;
@@ -45,35 +44,11 @@ public class Reader {
         }
     }
 
-    private boolean readLine() {
-        String line = input.nextLine();
-        ArrayList<String> tokens = new ArrayList<>();
-        boolean print =  false;
+    private void readLine() {
 
-        currentLine = line;
-        String current = "";
+        currentLine = input.nextLine();
 
-        for (int i = 0; i < line.length(); i++) {
-            if (!isDelimiter(line.charAt(i))) {
-                current += line.charAt(i);
-            } else {
-                if (!current.equals("")) {
-                    tokens.add(current);
-                }
-                current = "";
-
-                if(line.charAt(i) != ' ' && line.charAt(i) != '\n') {
-                    tokens.add("" + line.charAt(i));
-                }
-            }
-
-        }
-
-        if (!current.equals("")) {
-            tokens.add(current);
-        }
-
-        ArrayList<Object> cTokens = convert(tokens);
+        ArrayList<Object> cTokens = ReaderTools.readLine(new Scanner(currentLine), vars);
 
         if (cTokens.size() > 0
                 && vars.containsKey("ans")
@@ -110,16 +85,15 @@ public class Reader {
                 output.println();
             }
 
-            print = true;
         }
 
-        return print;
     }
 
     private ArrayList<Object> evaluate(ArrayList<Object> tokens) {
 
         tokens = parentheses(tokens);
         tokens = functions(tokens);
+        tokens = function(tokens);
         tokens = MatrixOperations(tokens);
         tokens = power(tokens);
         tokens = multiply(tokens);
@@ -132,44 +106,33 @@ public class Reader {
         return tokens;
     }
 
-    private ArrayList<Object> convert(ArrayList<String> tokens) {
-        ArrayList<Object> operations = new ArrayList<>();
-
+    private ArrayList<Object> function(ArrayList<Object> tokens) {
         for (int i = 0; i < tokens.size(); i++) {
-            String token = tokens.get(i);
-            if (isNumber(token)) {
-                operations.add(Stat.toValue(token));
-            } else if(vars.containsKey(token) && !(tokens.size() > i + 1 && tokens.get(i + 1).equals("=") && !tokens.get(i+2).equals("="))) {
-                Object o = vars.get(token);
-                if (vars.containsKey(o.toString())) {
-                    operations.add(vars.get(o.toString()));
+            if (tokens.get(i) instanceof ReaderFunction) {
+                ReaderFunction func = (ReaderFunction) tokens.get(i);
+                ArrayList<Object> inputs = new ArrayList<>();
+                for (int j = 0; j < func.inputSize(); j++) {
+                    inputs.add(tokens.get(i+2*j+1));
+                }
+                ArrayList<Object> out = func.run(inputs);
+
+                if (i > 2 && tokens.get(i-2).equals("}")) {
+                    for (int j = 0; j < func.outputSize(); j++) {
+                        vars.put(tokens.get(i - 2 * j - 2).toString(), out.get(j));
+                    }
+                    out = new ArrayList<>();
+                    out.add(";");
+                    return out;
                 } else {
-                    operations.add(o);
+                    for (int j = 2*func.inputSize() - 1; j > 0; j--) {
+                        tokens.remove(i+j);
+                    }
+                    tokens.set(i, out.get(0));
                 }
-
-            } else if (tokens.get(i).equals("-")) {
-                if (i > 0 &&
-                        (!(operations.get(operations.size() - 1) instanceof String)
-                                || operations.get(operations.size() -1).toString().equals("]")
-                                || operations.get(operations.size() -1).toString().equals(")"))) {
-                    operations.add("+");
-                } else if (i > 0 && operations.get(operations.size() -1).toString().equals("^")) {
-                    operations.add("(");
-                    tokens.add(i + 2, ")");
-                }
-                operations.add(Stat.toValue(-1));
-                operations.add("*");
-
-            } else {
-                operations.add(token);
             }
         }
 
-        return operations;
-    }
-
-    private boolean isNumber(String str) {
-        return str.matches("[-+]?\\d*\\.?\\d+");
+        return tokens;
     }
 
     private ArrayList<Object> matrix(ArrayList tokens) {
@@ -339,6 +302,7 @@ public class Reader {
         return tokens;
     }
 
+
     private ArrayList<Object> functions(ArrayList<Object> tokens) {
         ArrayList<Object> out;
         Object token;
@@ -453,7 +417,7 @@ public class Reader {
                     String current = "";
 
                     for (int j = 0; j < line.length(); j++) {
-                        if (!isDelimiter(line.charAt(j))) {
+                        if (!ReaderTools.isDelimiter(line.charAt(j))) {
                             current += line.charAt(j);
                         } else {
                             if (!current.equals("")) {
@@ -472,7 +436,7 @@ public class Reader {
 
                     loop = getBlock();
 
-                    while ( getFirstValue(evaluate(convert(statement))).compareTo(Stat.toValue(1)) == 0) {
+                    while ( getFirstValue(evaluate(ReaderTools.convert(statement, vars))).compareTo(Stat.toValue(1)) == 0) {
                         Scanner scan = new Scanner(loop);
                         new Reader(scan,output,vars,stackHeight+1);
                     }
@@ -480,8 +444,22 @@ public class Reader {
                     out = new ArrayList<>();
                     out.add(";");
                     return out;
+                case "if" :
+                    loop = getBlock();
 
-
+                    if (((Value) tokens.get(i +1)).compareTo(Stat.toValue(1)) == 0) {
+                        new Reader(new Scanner(loop),output,vars,stackHeight+1);
+                    }
+                    out = new ArrayList<>();
+                    out.add(";");
+                    return out;
+                case "function" :
+                    loop = currentLine + "\n" + getBlock();
+                    ReaderFunction function = new ReaderFunction(loop, output);
+                    vars.put(function.getName(), function);
+                    out = new ArrayList<>();
+                    out.add(";");
+                    return out;
                 default:
                     break;
             }
@@ -511,7 +489,8 @@ public class Reader {
 
             if(!type.equals("end")) {
                 if (type.equals("for")
-                        || type.equals("while")) {
+                        || type.equals("while")
+                        || type.equals("if")) {
                     height++;
                     tab = "";
                     for (int j = 0; j <= height; j++) {
@@ -525,6 +504,8 @@ public class Reader {
             } else {
                 if (height == stackHeight) {
                     done = true;
+                } else {
+                    loop += line + "\n";
                 }
                 height--;
                 if (stackHeight == 0) {
@@ -771,15 +752,6 @@ public class Reader {
             }
         }
 
-    }
-
-    private boolean isDelimiter(char c) {
-        for (int i = 0; i < DELIMITERS.length; i++) {
-            if (c == DELIMITERS[i]) {
-                return true;
-            }
-        }
-        return false;
     }
 }
 

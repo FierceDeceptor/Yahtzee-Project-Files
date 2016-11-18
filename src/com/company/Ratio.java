@@ -229,7 +229,7 @@ public class Ratio implements Value {
 
     @Override
     public int compareTo(Value other) {
-        return (int) this.toRatio().subtract(other.toRatio()).toRatio().getNumerator();
+        return Double.compare(this.toDouble(),other.toDouble());
     }
 
 
