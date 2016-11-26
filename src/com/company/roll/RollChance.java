@@ -10,11 +10,17 @@ import com.company.Stat;
 public class RollChance implements RollDice {
     @Override
     public int getScore(DiceSet dice) {
-        return 0;
+        // Calculate the sum of all the dice.
+        int sum = 0;
+        for(int i = 1; i <= 6;i++){
+            sum += dice.getDie(i) * i;
+        }
+        return sum;
     }
 
     @Override
     public Ratio getProbability(DiceSet dice, int rollsLeft) {
+        // There is a 100% probability of rolling a chance.
         return Stat.toValue(1,1);
     }
 }

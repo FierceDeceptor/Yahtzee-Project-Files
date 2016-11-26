@@ -1,6 +1,8 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * Created by danielpredmore on 10/27/16.
@@ -186,6 +188,48 @@ public class Stat {
      */
     public static Ratio approximateToRatio(double value) {
         return approximateToRatio(value, 1.0E-6);
+    }
+
+    /**
+     * This method generates all the combinations of a set with a certain group size.
+     * @param set The set that the groups are derived from.
+     * @param size The group size of all the combinations.
+     * @return A list of all possible groups from the set with a certain group size.
+     */
+    public static ArrayList<int[]> generateCombination(int[] set, int size){
+        ArrayList combinations = new ArrayList();
+        generateCombination(set, size, 0, new int[size], combinations);
+        return combinations;
+    }
+
+    /**
+     *
+     * @param set
+     * @param size
+     * @param start
+     * @param combination
+     * @param list
+     */
+    private static void generateCombination(int[] set, int size, int start, int[] combination, ArrayList<int[]> list){
+        if(size == 0){
+            list.add(combination.clone());
+        }
+        else{
+            for(int i = start;i <= set.length - size;i++){
+                combination[combination.length - size] = set[i];
+                generateCombination(set, size - 1, i + 1, combination, list);
+            }
+        }
+    }
+
+    /**
+     * THis method generates all the permutations of a set with a certain group size.
+     * @param set The set that the groups are derived from.
+     * @param size The group size of all the permutations.
+     * @return A list of all possible groups from the set with a certain group size.
+     */
+    public static ArrayList<int[]> generatePermutation(Set<Integer> set, int size){
+        return null;
     }
 
 }
