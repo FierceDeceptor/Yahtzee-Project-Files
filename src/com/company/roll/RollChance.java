@@ -7,7 +7,13 @@ import com.company.Stat;
 /**
  * Created by Jonathan Hamberg on 11/2/2016.
  */
-public class RollChance implements RollDice {
+public class RollChance implements Roll {
+
+    /**
+     *
+     * @param dice
+     * @return
+     */
     @Override
     public int getScore(DiceSet dice) {
         // Calculate the sum of all the dice.
@@ -18,9 +24,33 @@ public class RollChance implements RollDice {
         return sum;
     }
 
+    /**
+     *
+     * @param dice The dice set that is being used to calculate the probability.
+     * @param rollsLeft
+     * @return
+     */
     @Override
-    public Ratio getProbability(DiceSet dice, int rollsLeft) {
+    public Ratio getAverageProbability(DiceSet dice, int rollsLeft) {
         // There is a 100% probability of rolling a chance.
         return Stat.toValue(1,1);
+    }
+
+    /**
+     *
+     * @param dice
+     * @return
+     */
+    @Override
+    public double getAverageScore(DiceSet dice) {
+        return 0;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String toString(){
+        return "Chance";
     }
 }

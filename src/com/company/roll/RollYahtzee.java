@@ -5,10 +5,12 @@ import com.company.Matrix;
 import com.company.Ratio;
 import com.company.Stat;
 
+import java.util.ArrayList;
+
 /**
  * Created by Jonathan Hamberg on 11/2/2016.
  */
-public class RollYahtzee implements RollDice {
+public class RollYahtzee implements Roll {
 
     @Override
     public int getScore(DiceSet dice) {
@@ -16,13 +18,12 @@ public class RollYahtzee implements RollDice {
     }
 
     /**
-     *
      * @param dice The dice set that is being used to calculate the probability.
-     * @param rollsLeft
-     * @return
+     * @param rollsLeft The number or rolls left in order to achieve a Yahtzee.
+     * @return Returns the probability of getting a Yahtzee in a certain number of rolls.
      */
     @Override
-    public Ratio getProbability(DiceSet dice, int rollsLeft) {
+    public Ratio getAverageProbability(DiceSet dice, int rollsLeft) {
 
         // Find die value with the most dice.
         int largestCount = 0;
@@ -36,6 +37,17 @@ public class RollYahtzee implements RollDice {
 
         // Use this die value to calculate the probability of rolling an Yahtzee using the specified die value.
         return getProbability(dice, rollsLeft, largestValue);
+    }
+
+    /**
+     * This method gets the average possible score for rolling a Yahtzee.  Since there is only one way to roll a yahtzee
+     * and the score is always the same the average score will always be the same.
+     * @param dice The dice that have already been rolled to score a Yahtzee.
+     * @return The average score of rolling a Yahtzee which is 50.
+     */
+    @Override
+    public double getAverageScore(DiceSet dice) {
+        return 50;
     }
 
     /**
@@ -95,5 +107,9 @@ public class RollYahtzee implements RollDice {
 
         // The first row of the probability vector contains the probability for a Yahtzee.
         return (Ratio)probability.get(probabilityIndex, 0);
+    }
+
+    public String toString(){
+        return "Yahtzee";
     }
 }

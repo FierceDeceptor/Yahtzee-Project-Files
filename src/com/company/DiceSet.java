@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -72,7 +74,7 @@ public class DiceSet {
      * This method is used so set the number of die with a certain face value in the DiceSet.
      * @param value The face value of the dice that is being set.
      * @param number The number of dice that have a certain face value.
-     * @exception IllegalArgumentException This excption is thrown whit requested face value is not in the range of
+     * @exception IllegalArgumentException This exception is thrown whit requested face value is not in the range of
      * 1 through 6
      */
     public void setDie(int value, int number){
@@ -94,5 +96,58 @@ public class DiceSet {
             sum += number;
         }
         return sum;
+    }
+
+    /**
+     * This method is used to add die values to the current set of dice from a list of integers.
+     * @param list The list of die values that are being added to the dice set.
+     */
+    public void fromList(int[] list){
+
+    }
+
+    /**
+     * This method is used to add one die value to the current set of dice.
+     * @param value The die value that are being added to the dice set.
+     */
+    public void addDie(int value){
+        // Add one to the number of dice with the die the desired value.
+        diceMap.put(value, diceMap.get(value) + 1);
+    }
+
+    /**
+     * This method is used to clear all the dice values.  All the dice counts are set zero.
+     */
+    public void clear(){
+        for(int key : diceMap.keySet()){
+            diceMap.put(key, 0);
+        }
+    }
+
+    public String toString(){
+        // Make an array list from the dice set.
+        ArrayList<Integer> list = new ArrayList<>();
+        for(int i = 1;i <= 6;i++){
+            // Get the number of die with the specified values.
+            int number = diceMap.get(i);
+
+            // Add the dice to the array list.
+            for(int j = 0;j < number; j++){
+                list.add(i);
+            }
+        }
+
+        Iterator itr = list.iterator();
+        String str = "";
+
+        if(itr.hasNext()){
+            str = itr.next().toString();
+        }
+
+        while(itr.hasNext()){
+            str = str + " " + itr.next().toString();
+        }
+
+        return str;
     }
 }

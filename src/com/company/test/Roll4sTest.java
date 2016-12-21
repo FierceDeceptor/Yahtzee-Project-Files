@@ -31,31 +31,31 @@ public class Roll4sTest {
 
         // Probability for 0 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(0,1),
-                roll.getProbability(new DiceSet(new int[]{1,2,3,3,5}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{1,2,3,3,5}), 2));
 
         // Probability for 1 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(1,6),
-                roll.getProbability(new DiceSet(new int[]{2,2,3,3}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{2,2,3,3}), 2));
 
         // Probability for 2 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(11,36),
-                roll.getProbability(new DiceSet(new int[]{1,2,3}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{1,2,3}), 2));
 
         // Probability for 3 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(91,216),
-                roll.getProbability(new DiceSet(new int[]{1,2}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{1,2}), 2));
 
         // Probability for 4 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(671,1296),
-                roll.getProbability(new DiceSet(new int[]{1}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{1}), 2));
 
         // Probability for 5 dice remaining to roll.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(4651,7776),
-                roll.getProbability(new DiceSet(new int[]{}), 3));
+                roll.getAverageProbability(new DiceSet(new int[]{}), 3));
 
         // Probability if the dice set already contains a 4.
         assertEquals("Roll1s: unexpected probability.", Stat.toValue(1,1),
-                roll.getProbability(new DiceSet(new int[]{1,2,3,4,5}), 2));
+                roll.getAverageProbability(new DiceSet(new int[]{1,2,3,4,5}), 2));
 
     }
 

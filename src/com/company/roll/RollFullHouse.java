@@ -7,14 +7,44 @@ import com.company.Stat;
 /**
  * Created by Jonathan Hamberg on 11/2/2016.
  */
-public class RollFullHouse implements RollDice {
+public class RollFullHouse implements Roll {
+
+    /**
+     *
+     * @param dice
+     * @return
+     */
     @Override
     public int getScore(DiceSet dice) {
         return 0;
     }
 
+    /**
+     *
+     * @param dice The dice set that is being used to calculate the probability.
+     * @param rollsLeft
+     * @return
+     */
     @Override
-    public Ratio getProbability(DiceSet dice, int rollsLeft) {
+    public Ratio getAverageProbability(DiceSet dice, int rollsLeft) {
         return Stat.toValue(1,1);
+    }
+
+    /**
+     *
+     * @param dice
+     * @return
+     */
+    @Override
+    public double getAverageScore(DiceSet dice) {
+        return 0;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String toString(){
+        return "Full house";
     }
 }

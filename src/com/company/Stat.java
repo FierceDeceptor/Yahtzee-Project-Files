@@ -232,4 +232,69 @@ public class Stat {
         return null;
     }
 
+    /**
+     * This method rounds a value to a specific number of decimal places and returns the result.
+     * @param value The value that is being rounded.
+     * @param decimalPlace The number of decimal places that the number is being rounded to.
+     * @return The value that has been rounded.
+     */
+    public static double round(double value, int decimalPlace){
+        return (int)(value * Math.pow(10, decimalPlace) + 0.5) / Math.pow(10, decimalPlace);
+    }
+
+    static public Ratio probabilityMatchingDice(int matchingDice, int numberOfRolls){
+        // The transition matrix builder.
+        Matrix.Builder tBuilder = new Matrix.Builder(6, 6);
+
+        // Set the first row of the transition matrix.
+        tBuilder.set(Stat.toValue(3125,7776), 0, 0);
+        tBuilder.set(Stat.toValue(3125,7776), 0, 1);
+        tBuilder.set(Stat.toValue(1250,7776), 0, 2);
+        tBuilder.set(Stat.toValue(250,7776), 0, 3);
+        tBuilder.set(Stat.toValue(25,7776), 0, 4);
+        tBuilder.set(Stat.toValue(1,7776), 0, 5);
+
+        // Set the second row of the transition matrix.
+        tBuilder.set(Stat.toValue(625,1296), 1, 1);
+        tBuilder.set(Stat.toValue(500,1296), 1, 2);
+        tBuilder.set(Stat.toValue(150,1296), 1, 3);
+        tBuilder.set(Stat.toValue(20,1296), 1, 4);
+        tBuilder.set(Stat.toValue(1,1296), 1, 5);
+
+        // Set the third row of the transition matrix.
+        tBuilder.set(Stat.toValue(125,216), 2, 2);
+        tBuilder.set(Stat.toValue(75,216), 2, 3);
+        tBuilder.set(Stat.toValue(15,216), 2, 4);
+        tBuilder.set(Stat.toValue(1,216), 2, 5);
+
+
+        // Set the fourth row of the transition matrix.
+        tBuilder.set(Stat.toValue(25,36), 3, 3);
+        tBuilder.set(Stat.toValue(10,36), 3, 4);
+        tBuilder.set(Stat.toValue(1,36), 3, 5);
+
+        // Set the fifth row of the transition matrix.
+        tBuilder.set(Stat.toValue(5,6), 4, 4);
+        tBuilder.set(Stat.toValue(1,6), 4, 5);
+
+        // Let the fifth row of the transition matrix.
+        tBuilder.set(Stat.toValue(1,1), 5, 5);
+
+        // The probability matrix builder.
+        Matrix.Builder pBuilder = new Matrix.Builder(6, 1);
+
+        // The last row is a 1.
+        pBuilder.set(Stat.toValue(1,1), 5, 0);
+
+        Matrix transition = tBuilder.Build();
+        Matrix probability = pBuilder.Build();
+
+        // Multiply the transition matrix by the probability matrix rollsLeft times.
+        for(int i = 0; i < numberOfRolls;i++ ){
+            probability = transition.multiply(probability);
+        }
+
+        // The probability for the different number of dice is stored in the probability matrix.
+        return (Ratio)probability.get(5 - matchingDice, 0);
+    }
 }

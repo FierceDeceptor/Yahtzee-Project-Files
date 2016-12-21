@@ -7,7 +7,8 @@ import com.company.Stat;
 /**
  * Created by Jonathan Hamberg on 11/2/2016.
  */
-public class Roll1s implements RollDice {
+public class Roll1s implements Roll {
+
     /**
      * The score is calculated by determining how many ones are in the roll and multiplying by 1.
      * @param dice The dice in the roll.
@@ -19,26 +20,52 @@ public class Roll1s implements RollDice {
     }
 
     /**
-     * The probability of rolling a one is calculated by determining what the probability of rolling a 1 with the
-     * remaining dice is.
-     * The function for calculating this probability is:
-     *                  f(n)= 1 - (1 - 1/6)^n.
-     * where n is the number of dice left to roll.
+     * The average probability is calculated by taking the average of all the probabilities for each possible scoring
+     * roll.
      * @param dice The dice that have already been rolled and can not be changed.
+     * @param rollsLeft Indicates the number of rolls left for probability calculations.
      * @return The probability of rolling a 1 for the remaining dice.
      */
     @Override
-    public Ratio getProbability(DiceSet dice, int rollsLeft) {
+    public Ratio getAverageProbability(DiceSet dice, int rollsLeft) {
+        // Determine the number of scoring dice in the roll.
+        int numDice = dice.getDie(1);
 
-        // The probability of rolling a 1 is 100% if the one is already in the dice roll.
-        if(dice.getDie(1) > 0){
-            return Stat.toValue(1,1);
+        // Determine the remaining number of possible rolls.
+        int n = 5 - numDice;
+
+        // Calculate the total probability of all the possible rolls.
+        Ratio totalProbability = Stat.toValue(0,1);
+        for(int i = numDice + 1;i <= 5;i++){
+            totalProbability = (Ratio)totalProbability.add(Stat.probabilityMatchingDice(i - numDice, rollsLeft));
         }
 
-        // Calculate the number of dice remaining to roll.
-        int n = 5 - dice.numberOfDice();
+        // Return the average probability dividing the total probability by the number of possible rolls.
+        return (Ratio)totalProbability.divide(Stat.toValue(n));
+    }
 
-        // Calculate the probability to roll a one on the next roll.
-        return (Ratio)(Stat.toValue(1,1).subtract(Stat.toValue(5,6).power(Stat.toValue(n))));
+    /**
+     *
+     * @param dice
+     * @return
+     */
+    @Override
+    public double getAverageScore(DiceSet dice) {
+
+        // Determine the number of scoring dice in the roll.
+        int numDice = dice.getDie(1);
+
+        // Determine the remaining number of scoring rolls.
+        int n = 5 - numDice;
+
+        // Calculate the total score of all the possible rolls.
+        int totalScore = 1 * n * (numDice + 1 + 5) / 2;
+
+        // Return the average score by returning the total score by the number of possible scoring rolls.
+        return Stat.round((double)totalScore / n, 1);
+    }
+
+    public String toString(){
+        return "Aces";
     }
 }

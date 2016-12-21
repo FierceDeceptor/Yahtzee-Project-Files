@@ -34,7 +34,7 @@ public class RollChanceTest {
 
         // Probability for 0 dice remaining to roll.
         assertEquals("RollChance: unexpected probability.", Stat.toValue(1,1),
-                roll.getProbability(new DiceSet(), 3));
+                roll.getAverageProbability(new DiceSet(), 3));
     }
 
 }
