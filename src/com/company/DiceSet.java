@@ -87,10 +87,28 @@ public class DiceSet {
     }
 
     /**
+     * This method gets the number of sets of dice with a specific size.
+     * For example passing size = 2 would return the number of pairs in the dice roll.
+     * and passing size = 3 would return the number of triples and so on.
+     * @param size The size of the set.
+     * @return The number of sets with a specific size.
+     */
+    public int sets(int size){
+        int count = 0;
+        for(int value : diceMap.values()){
+            if(value == size){
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /**
      * This method is used to query the number of dice that are in the set.
      * @return The number of dice in the set.
      */
-    public int numberOfDice(){
+    public int size(){
         int sum = 0;
         for(int number : diceMap.values()){
             sum += number;
